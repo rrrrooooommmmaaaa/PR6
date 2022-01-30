@@ -1,4 +1,5 @@
-import { questions } from '../questions.js'
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.5/firebase-app.js";
+import { getDatabase, ref, child, get, push } from "https://www.gstatic.com/firebasejs/9.6.5/firebase-database.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const btnOpenModal = document.querySelector('#btnOpenModal')
@@ -10,16 +11,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevButton = document.querySelector('#prev')
     const sendButton = document.querySelector('#send')
 
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzZ7rtDHGednLwV4QbuNwuieDLzBWhazA",
+        authDomain: "quiz-39bc0.firebaseapp.com",
+        databaseURL: "https://quiz-39bc0-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "quiz-39bc0",
+        storageBucket: "quiz-39bc0.appspot.com",
+        messagingSenderId: "981863796562",
+        appId: "1:981863796562:web:ec9493685afba93e74f48b"
+    };
+
+    initializeApp(firebaseConfig);
+
+    const getData = () => {
+        nextButton.classList.add('d-none')
+        prevButton.classList.add('d-none')
+        
+        formAnswers.textContent = 'LOAD';
+
+        const dbRef = ref(getDatabase());
+        get(child(dbRef, `questions`))
+            .then((snapshot) => {
+                if (snapshot.exists()) {
+                    playTest(snapshot.val())
+                } else {
+                    console.log("No data available");
+                }
+            }).catch((error) => {
+                console.error(error);
+            });
+    }
+
     btnOpenModal.addEventListener('click', () => {
         modalBlock.classList.add('d-block')
-        playTest();
+        getData();
     })
 
     closeModal.addEventListener('click', () => {
         modalBlock.classList.remove('d-block')
     })
 
-    const playTest = () => {
+    const playTest = (questions) => {
         const finalAnswers = []
 
         let numberQuestion = 0
@@ -108,8 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
             checkAnswer()
             numberQuestion++;
             renderQuestions(numberQuestion)
-            
-            console.log(finalAnswers)
+
+            const db = getDatabase();
+            push(ref(db, 'contacts'), finalAnswers);
         })
     }
 })
